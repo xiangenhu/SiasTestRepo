@@ -10,7 +10,7 @@ const question = {
 };
 
 async function start(t, generator) {
-  const server = createServer(generator);
+  const server = createServer(generator, { config: null });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise(resolve => server.close(resolve)));
   return 'http://127.0.0.1:' + server.address().port;
@@ -31,7 +31,7 @@ test('serves wizard assets and generates a question for user topics', async t =>
   }
   const response = await post(url, { domain: ' Mathematics ', subdomain: ' Algebra ' });
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), question);
+  assert.deepEqual(await response.json(), { ...question, trackingEnabled: false });
   assert.deepEqual(topics, ['Mathematics', 'Algebra']);
   assert.equal((await fetch(url + '/unknown')).status, 404);
   assert.equal((await fetch(url + '/api/question')).status, 405);
@@ -69,4 +69,25 @@ test('provider request uses structured output and handles refusals', async t => 
   assert.deepEqual(JSON.parse(request.input), { domain: 'Mathematics', subdomain: 'Algebra' });
   globalThis.fetch.mock.mockImplementation(async () => ({ ok: true, json: async () => ({ status: 'completed', output: [{ content: [{ type: 'refusal' }] }] }) }));
   await assert.rejects(generateQuestion('Topic', 'Subtopic'), /refused/);
+});
+
+test('suggests domains and domain-specific subdomains and validates results', async t => {
+  let receivedDomain;
+  const domains = ['Math', 'Biology', 'History', 'Computing', 'Music', 'Geography'];
+  const subdomains = ['Algebra', 'Geometry', 'Calculus', 'Probability', 'Statistics', 'Arithmetic'];
+  const server = createServer(async () => question, { config: null }, async domain => {
+    receivedDomain = domain;
+    if (domain === 'Bad') return ['Invalid'];
+    return domain ? subdomains : domains;
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const url = 'http://127.0.0.1:' + server.address().port + '/api/topics';
+  const request = body => fetch(url, { method: 'POST', body: JSON.stringify(body) });
+  assert.deepEqual(await (await request({})).json(), { suggestions: domains });
+  assert.equal(receivedDomain, undefined);
+  assert.deepEqual(await (await request({ domain: ' Math ' })).json(), { suggestions: subdomains });
+  assert.equal(receivedDomain, 'Math');
+  assert.equal((await request({ domain: ' ' })).status, 400);
+  assert.equal((await request({ domain: 'Bad' })).status, 502);
 });

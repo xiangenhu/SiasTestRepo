@@ -5,7 +5,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --chown=node:node package.json server.js ./
+COPY --chown=node:node package.json server.js xapi.js ./
 COPY --chown=node:node public ./public
 
 USER node

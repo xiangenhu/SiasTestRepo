@@ -18,6 +18,9 @@
     <h2>1. Choose a domain</h2>
     <label for="domain">Domain</label>
     <input id="domain" required maxlength="120" placeholder="e.g. Mathematics, Biology, History" autocomplete="off">
+    <button type="button" id="suggest-domains" class="secondary">Suggest domains with AI</button>
+    <div id="domain-suggestions" class="suggestions" aria-label="Suggested domains"></div>
+    <p id="domain-suggestion-status" role="status"></p>
     <button type="submit">Next</button>
   </form>
   <form id="topic-form" hidden>
@@ -25,6 +28,9 @@
     <p id="domain-summary"></p>
     <label for="subdomain">Subdomain</label>
     <input id="subdomain" required maxlength="120" placeholder="e.g. Algebra, Cell biology, Ancient Egypt" autocomplete="off">
+    <button type="button" id="suggest-subdomains" class="secondary">Suggest subdomains with AI</button>
+    <div id="subdomain-suggestions" class="suggestions" aria-label="Suggested subdomains"></div>
+    <p id="subdomain-suggestion-status" role="status"></p>
     <div class="actions"><button type="button" id="back" class="secondary">Back</button><button type="submit" id="generate">Generate question</button></div>
   </form>
   <section id="question-step" hidden>
@@ -38,6 +44,7 @@
     <div class="actions"><button type="button" id="another">Generate another</button><button type="button" id="restart" class="secondary">Change topic</button></div>
   </section>
   <p id="status" role="status" aria-live="polite"></p>
+  <p id="tracking-status" role="status" aria-live="polite"></p>
 </main>
 </body>
 </html>

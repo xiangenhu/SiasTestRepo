@@ -17,3 +17,5 @@ legend { font-weight: 600; padding: 0 6px; }
 #choices label { padding: 10px; background: #f2f5fa; border-radius: 6px; cursor: pointer; }
 #feedback, #status { overflow-wrap: anywhere; }
 [hidden] { display: none !important; }
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.suggestions button { margin-top: 8px; padding: 6px 12px; background: #eef3ff; color: #214dc4; }
