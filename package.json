@@ -2,8 +2,12 @@
   "name": "hello-world-app",
   "version": "1.0.0",
   "private": true,
-  "description": "A simple Node.js hello world website",
+  "description": "Generate multiple-choice questions with a domain and subdomain wizard",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   }
 }

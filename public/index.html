@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Question Wizard</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<main>
+  <h1>Question Wizard</h1>
+  <p>Create a multiple-choice question about a topic you want to practice.</p>
+  <ol class="steps" aria-label="Wizard progress">
+    <li aria-current="step">Domain</li><li>Subdomain</li><li>Question</li>
+  </ol>
+  <form id="domain-form">
+    <h2>1. Choose a domain</h2>
+    <label for="domain">Domain</label>
+    <input id="domain" required maxlength="120" placeholder="e.g. Mathematics, Biology, History" autocomplete="off">
+    <button type="submit">Next</button>
+  </form>
+  <form id="topic-form" hidden>
+    <h2>2. Choose a subdomain</h2>
+    <p id="domain-summary"></p>
+    <label for="subdomain">Subdomain</label>
+    <input id="subdomain" required maxlength="120" placeholder="e.g. Algebra, Cell biology, Ancient Egypt" autocomplete="off">
+    <div class="actions"><button type="button" id="back" class="secondary">Back</button><button type="submit" id="generate">Generate question</button></div>
+  </form>
+  <section id="question-step" hidden>
+    <h2>3. Answer your question</h2>
+    <p id="topic-summary"></p>
+    <form id="answer-form">
+      <fieldset><legend id="question"></legend><div id="choices"></div></fieldset>
+      <button type="submit">Check answer</button>
+    </form>
+    <p id="feedback" role="status"></p>
+    <div class="actions"><button type="button" id="another">Generate another</button><button type="button" id="restart" class="secondary">Change topic</button></div>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+</main>
+</body>
+</html>

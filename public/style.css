@@ -1,0 +1,19 @@
+* { box-sizing: border-box; }
+body { margin: 0; padding: 32px 16px; background: #f2f5fa; color: #17233b; font-family: system-ui, sans-serif; line-height: 1.6; }
+main { max-width: 680px; margin: auto; background: white; border-radius: 16px; padding: clamp(20px, 5vw, 40px); box-shadow: 0 8px 32px #17233b12; }
+h1 { margin-top: 0; }
+h2 { font-size: 1.3rem; }
+.steps { display: flex; gap: 24px; padding: 0; list-style-position: inside; flex-wrap: wrap; color: #596579; }
+.steps [aria-current] { color: #214dc4; font-weight: bold; }
+label { display: block; margin: 12px 0 6px; }
+input:not([type=radio]) { width: 100%; padding: 12px; border: 1px solid #8b96a6; border-radius: 6px; font: inherit; }
+button { background: #214dc4; color: white; border: 1px solid #214dc4; border-radius: 6px; padding: 10px 16px; font: inherit; cursor: pointer; margin-top: 20px; }
+button.secondary { background: white; color: #214dc4; }
+button:disabled { opacity: .55; cursor: wait; }
+:focus-visible { outline: 3px solid #91b4ff; outline-offset: 3px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+fieldset { border: 1px solid #cbd2df; border-radius: 8px; padding: 16px; }
+legend { font-weight: 600; padding: 0 6px; }
+#choices label { padding: 10px; background: #f2f5fa; border-radius: 6px; cursor: pointer; }
+#feedback, #status { overflow-wrap: anywhere; }
+[hidden] { display: none !important; }

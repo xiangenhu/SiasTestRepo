@@ -1,16 +1,33 @@
-# Hello World Node.js App
+# Question Wizard
 
-A simple website using Node.js's built-in HTTP server. No dependencies required.
+A Node.js website with a three-step wizard: enter any domain, enter a subdomain,
+then generate and answer a multiple-choice question with four choices and an explanation.
+No npm dependencies required. Requires Node.js 24 or newer.
 
 ## Run
 
-Install Node.js, then run:
+Install Node.js 24 or newer. Copy the configuration template:
+
+```sh
+cp .env.example .env
+```
+
+Add your API key to `.env`, then run:
 
 ```sh
 npm start
 ```
 
-Open http://localhost:3000 to see **hello world**.
+Open http://localhost:3000 to use the wizard.
+
+The server automatically loads `.env` from the app directory. Set
+`OPENAI_API_KEY` there before starting the app. Existing environment variables
+take precedence over `.env` values. The key
+stays on the server; never put it in browser code or commit it. Generation uses
+the OpenAI Responses API and defaults to `gpt-4o-mini`. Set `OPENAI_MODEL` to
+use another model supporting Structured Outputs. Without a key, the wizard
+loads but generation displays a configuration error. AI-generated questions
+may need review for factual accuracy.
 
 To use a different port:
 
@@ -24,7 +41,7 @@ Build and run the container locally:
 
 ```sh
 docker build --platform linux/amd64 -t hello-world-app .
-docker run --rm -p 8080:8080 hello-world-app
+docker run --rm --env-file .env -e PORT=8080 -p 8080:8080 hello-world-app
 ```
 
 Open http://localhost:8080. The container runs as a non-root user and listens
@@ -39,3 +56,8 @@ gcloud run deploy hello-world-app --source . --project YOUR_PROJECT_ID --region 
 
 The source deployment builds the image using the Dockerfile. Follow the CLI
 prompts to choose whether the website allows unauthenticated access.
+
+Configure `OPENAI_API_KEY` as a Cloud Run secret-backed environment variable
+before generating questions. The service account needs access to that secret.
+The local `.env` is excluded from Git and Docker builds. Cloud Run environment
+variables work without a `.env` file in the container.
