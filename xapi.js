@@ -100,4 +100,49 @@ async function sendStatement(statement, cfg, fetcher = fetch) {
   }
 }
 
-module.exports = { config, signQuestion, buildStatement, sendStatement };
+function llmIdentity(data) {
+  if (data.learnerId !== undefined && !uuid.test(data.learnerId)) throw Error('Invalid learner ID');
+  if (data.sessionId !== undefined && !uuid.test(data.sessionId)) throw Error('Invalid session ID');
+  return { learnerId: data.learnerId || 'server-client-' + randomUUID(), sessionId: data.sessionId || randomUUID() };
+}
+
+function buildLLMStatement(record, identity, cfg) {
+  const iri = path => new URL(path, cfg.base).href;
+  const usage = record.usage;
+  const token = value => Number.isInteger(value) && value >= 0 ? value : undefined;
+  const tokens = {
+    prompt_tokens: token(usage?.input_tokens), completion_tokens: token(usage?.output_tokens),
+    total_tokens: token(usage?.total_tokens), cached_tokens: token(usage?.input_tokens_details?.cached_tokens),
+    cache_write_tokens: token(usage?.input_tokens_details?.cache_write_tokens), reasoning_tokens: token(usage?.output_tokens_details?.reasoning_tokens),
+  };
+  const metadata = {
+    interaction_id: record.interactionId, operation: record.operation, phase: record.phase,
+    provider: 'openai', model: record.model, response_id: record.responseId,
+    http_status: record.httpStatus, provider_status: record.providerStatus,
+    latency_ms: record.durationMs, error_code: record.errorCode,
+    prompt: { instructions: record.request.instructions, input: record.request.input },
+    request_parameters: record.request, output: record.output,
+    incomplete_details: record.incompleteDetails, usage_available: Boolean(usage), usage,
+    ...tokens,
+  };
+  // Remove absent properties while preserving actual zero token counts.
+  for (const key of Object.keys(metadata)) if (metadata[key] === undefined) delete metadata[key];
+  const verb = record.phase === 'started' ? 'initialized' : record.success ? 'completed' : 'failed';
+  return {
+    id: randomUUID(), timestamp: record.timestamp,
+    actor: { objectType: 'Agent', account: { homePage: cfg.base, name: identity.learnerId } },
+    verb: { id: 'http://adlnet.gov/expapi/verbs/' + verb, display: { 'en-US': verb } },
+    object: { objectType: 'Activity', id: iri('llm/interactions/' + record.interactionId), definition: { name: { 'en-US': record.operation } } },
+    context: {
+      registration: identity.sessionId,
+      contextActivities: { parent: [{ objectType: 'Activity', id: iri('wizard') }] },
+      extensions: { [iri('extensions/event')]: 'llm_' + record.phase, [iri('extensions/llm')]: metadata },
+    },
+    result: {
+      duration: 'PT' + (record.durationMs / 1000).toFixed(3) + 'S',
+      ...(record.phase !== 'started' ? { completion: true, success: record.success } : {}),
+    },
+  };
+}
+
+module.exports = { config, signQuestion, buildStatement, sendStatement, llmIdentity, buildLLMStatement };

@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+  match /updates/{id} { allow read: if request.auth != null; allow write: if false; }
+  match /users/{uid} {
+   allow read: if owner(uid);
+   allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['filters', 'saved']) && (!('saved' in request.resource.data) || (request.resource.data.saved is list && request.resource.data.saved.size() <= 1000)) && (!('filters' in request.resource.data) || (request.resource.data.filters is map && request.resource.data.filters.keys().hasOnly(['type', 'jurisdiction']) && request.resource.data.filters.type is string && request.resource.data.filters.jurisdiction is string));
+   match /reviews/{id} {
+    allow read: if owner(uid);
+    allow create, update: if owner(uid)
+      && exists(/databases/$(database)/documents/updates/$(id))
+      && request.resource.data.keys().hasOnly(['status', 'confirmed', 'note', 'updatedAt', 'interpretationVersion'])
+      && request.resource.data.status in ['accepted', 'flagged']
+      && request.resource.data.interpretationVersion == (exists(/databases/$(database)/documents/users/$(uid)/analyses/$(id)) ? get(/databases/$(database)/documents/users/$(uid)/analyses/$(id)).data.revision : get(/databases/$(database)/documents/updates/$(id)).data.revision)
+      && request.resource.data.confirmed == true
+      && request.resource.data.note is string && request.resource.data.note.size() <= 2000
+      && request.resource.data.updatedAt == request.time
+      && (request.resource.data.status == 'flagged' || exists(/databases/$(database)/documents/users/$(uid)/analyses/$(id)) || get(/databases/$(database)/documents/updates/$(id)).data.analysis != null);
+    allow delete: if owner(uid);
+   }
+   match /analyses/{id} { allow read: if owner(uid); allow write: if false; }
+   match /usage/{day} { allow read: if owner(uid); allow write: if false; }
+  }
+ }
+}

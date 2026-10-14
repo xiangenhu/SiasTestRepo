@@ -1,13 +1,31 @@
 {
-  "name": "hello-world-app",
+  "name": "safetysignal",
   "version": "1.0.0",
   "private": true,
-  "description": "Generate multiple-choice questions with a domain and subdomain wizard",
+  "description": "Workplace safety regulatory dashboard with Firebase accounts and quota-controlled AI review",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "build": "node scripts/build.js",
+    "test": "node --test",
+    "prestart": "npm run build",
+    "test:e2e": "playwright test",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-safetysignal \"node --test checks/firestore.cjs\""
+  },
+  "dependencies": {
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
+    "lucide": "^1.57.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@playwright/test": "^1.64.0",
+    "esbuild": "^0.28.2",
+    "firebase-tools": "^15.33.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
   }
 }

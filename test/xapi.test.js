@@ -81,34 +81,6 @@ test('sends to an LRS over HTTP and retries using the same statement ID and body
   assert.equal(received[0].body, received[1].body);
 });
 
-test('generation issues a token and tracking handles success and failure independently', async t => {
-  const statements = [];
-  let failed = false;
-  const url = await listen(t, createServer(async () => question, { config: cfg, send: async statement => {
-    if (failed) throw Error('Private credentials');
-    statements.push(statement);
-  } }));
-  const response = await fetch(url + '/api/question', { method: 'POST', body: JSON.stringify({ domain: 'Math', subdomain: 'Addition' }) });
-  const generated = await response.json();
-  assert.equal(generated.trackingEnabled, true);
-  assert.ok(generated.questionToken);
-  const input = { ...event(), questionToken: generated.questionToken };
-  const send = body => fetch(url + '/api/activity', { method: 'POST', body: JSON.stringify(body) });
-  assert.equal((await send(input)).status, 200);
-  assert.equal(statements.length, 1);
-  assert.equal((await send({ ...input, answerIndex: 10 })).status, 400);
-  failed = true;
-  const failure = await send(input);
-  assert.equal(failure.status, 502);
-  assert.ok(!(await failure.text()).includes('Private credentials'));
-});
-
-test('disabled tracking leaves quiz available and does not send statements', async t => {
-  const url = await listen(t, createServer(async () => question, { config: null, send: async () => assert.fail('Unexpected LRS request') }));
-  const response = await fetch(url + '/api/activity', { method: 'POST', body: '{}' });
-  assert.deepEqual(await response.json(), { tracking: 'disabled' });
-});
-
 test('records clicks and wizard activity before a question exists', () => {
   for (const type of ['click', 'double_click', 'context_menu', 'input', 'change', 'focus', 'blur', 'key', 'scroll', 'visibility', 'navigation', 'generation_started', 'generation_succeeded', 'generation_failed', 'page_opened', 'page_left', 'validation_failed']) {
     const input = { ...event(type), questionToken: undefined, timestamp: '2026-10-14T12:00:00.000Z', details: { step: 1, id: 'domain', tag: 'input' } };
@@ -120,15 +92,4 @@ test('records clicks and wizard activity before a question exists', () => {
     assert.equal(statement.result.success, undefined);
   }
   assert.throws(() => buildStatement({ ...event('click'), details: { huge: 'x'.repeat(2050) } }, cfg));
-});
-
-test('tracking configuration exposes only enabled status and batch events reach LRS', async t => {
-  const received = [];
-  const url = await listen(t, createServer(async () => question, { config: cfg, send: async statement => received.push(statement) }));
-  assert.deepEqual(await (await fetch(url + '/api/tracking')).json(), { enabled: true });
-  const events = ['click', 'input', 'navigation'].map(type => ({ ...event(type), questionToken: undefined, details: { id: 'domain' } }));
-  const response = await fetch(url + '/api/activity', { method: 'POST', body: JSON.stringify(events) });
-  assert.equal(response.status, 200);
-  assert.deepEqual((await response.json()).statementIds, events.map(e => e.eventId));
-  assert.equal(received.length, 3);
 });

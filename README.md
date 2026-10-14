@@ -1,131 +1,59 @@
-# Question Wizard
+# SafetySignal
 
-A Node.js website with a three-step wizard: enter any domain, enter a subdomain,
-then generate and answer a multiple-choice question with four choices and an explanation.
-Use **Suggest domains with AI** for domain ideas. Continuing to the subdomain
-step automatically suggests related subdomains; **Suggest subdomains with AI**
-refreshes them. Click a suggestion to fill the field, or type any topic yourself.
-Suggestions use the same server-side OpenAI key and model as question generation.
-No npm dependencies required. Requires Node.js 24 or newer.
+Workplace safety regulatory dashboard replacing the Question Wizard. Includes sign-in and account creation, rule type and jurisdiction filters, private saved updates and review decisions, impact details, uncertainty warnings, manual acceptance, flags for expert review, and JSON report export. Responsive and keyboard accessible.
 
-## Run
+## Run locally
 
-Install Node.js 24 or newer. Copy the configuration template:
+Requires Node.js 24+. Run `npm ci`, then `npm start`, and open http://localhost:3000.
 
-```sh
-cp .env.example .env
-```
+The sign-in screen offers **Explore the sample workspace** immediately. Sample data, source digests, and analyses are clearly labeled; they are not a live regulatory feed or complete legal text. Demo reviews and preferences stay in browser local storage. No AI API is called in demo mode. Use Settings → Show empty state to preview first run. Open Respiratory protection → Generate impact analysis to see the loading state. The heat proposal demonstrates uncertainty and expert review.
 
-Add your API key to `.env`, then run:
+## Enable cloud accounts and storage
 
-```sh
-npm start
-```
+1. Create a Firebase project and a web app. Enable Authentication → Email/Password and create a Firestore database.
+2. Add localhost and your deployment hostname to Authentication's authorized domains.
+3. Copy `.env.example` to `.env` **only if you do not already have one**. Merge the new Firebase settings into any existing `.env`; do not overwrite existing secrets. Set `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, and `FIREBASE_APP_ID` from your web app configuration.
+4. Set `FIREBASE_SERVICE_ACCOUNT_JSON` to the service account JSON on a single line, or use Google Application Default Credentials. This credential is server-only. Grant the service account only the access it needs to Firestore and token verification.
+5. Deploy the checked-in security rules: `npx firebase-tools deploy --only firestore:rules --project YOUR_PROJECT_ID` (requires Firebase CLI login).
+6. Create an account. A verification email is sent. Verify your email before using the real AI endpoint.
 
-Open http://localhost:3000 to use the wizard.
+Firestore schema:
 
-The server automatically loads `.env` from the app directory. Set
-`OPENAI_API_KEY` there before starting the app. Existing environment variables
-take precedence over `.env` values. The key
-stays on the server; never put it in browser code or commit it. Generation uses
-the OpenAI Responses API and defaults to `gpt-4o-mini`. Set `OPENAI_MODEL` to
-use another model supporting Structured Outputs. Without a key, the wizard
-loads but generation displays a configuration error. AI-generated questions
-may need review for factual accuracy.
+- `updates/{id}`: title, text, source, jurisdiction, rule type, stage, publication date, sample label, revision, initial analysis. Authenticated users can read; only the server writes.
+- `users/{uid}`: filter preferences and saved update IDs. Private to that account.
+- `users/{uid}/reviews/{id}`: accepted/flagged, explicit confirmation, interpretation version, notes, server timestamp.
+- `users/{uid}/analyses/{id}`: private server-generated impact analysis and revision. Only the server writes.
+- `users/{uid}/usage/{YYYY-MM-DD}`: private daily reserved AI attempt count. Only the server writes.
+- `usage/{YYYY-MM-DD}`: server-only app-wide daily attempt count.
 
-To use a different port:
+Realtime Firestore listeners refresh updates, analyses, review decisions, preferences, and usage. Security rules reject cross-user access, client-written AI usage, and acceptance without confirmation or with a stale interpretation version. Analysis and invalidation of an old review are saved atomically. Accepting records a user's decision; it does not apply compliance changes. Flagging records a request; it does not contact an expert or send an email.
+
+## Ingestion and scheduling
+
+The initial ingestion adapter deliberately imports static sample JSON, as allowed by the brief. It does not pretend to retrieve today's regulatory changes. Set a random `CRON_SECRET` (32+ characters). An authorized GET or POST to `/api/ingest` imports the six sample records with stable IDs and revisions:
 
 ```sh
-PORT=8080 npm start
+curl -X POST http://localhost:3000/api/ingest -H "Authorization: Bearer $CRON_SECRET"
 ```
 
-## Docker and Cloud Run
+Vercel's configuration schedules this endpoint at 06:00 UTC daily. Add `CRON_SECRET` to the Vercel environment; the scheduler uses its bearer header. Seed once manually after setting up Firebase. Daily sample imports are idempotent and do not call AI. Replace `backend.ingest()` with an official feed adapter to receive actual changes; retain source URLs, full text or explicit digest labels, publication dates, and content revisions. This app has no verified live feed yet.
 
-Build and run the container locally:
+## AI and cost controls
 
-```sh
-docker build --platform linux/amd64 -t hello-world-app .
-docker run --rm --env-file .env -e PORT=8080 -p 8080:8080 hello-world-app
-```
+Set the server-only `OPENAI_API_KEY`. `OPENAI_MODEL` defaults to `gpt-4o-mini`. The backend uses the [OpenAI Responses API with Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses), a 45-second timeout, no automatic retries, `store: false`, a 12,000-character source cap, and at most 900 output tokens. The browser cannot choose the model, prompt, source text, or quota.
 
-Open http://localhost:8080. The container runs as a non-root user and listens
-on `0.0.0.0` using Cloud Run's `PORT` environment variable (default: 8080).
+Set `AI_DAILY_USER_LIMIT` (default 10; maximum 100) and `AI_DAILY_GLOBAL_LIMIT` (default 100; maximum 1000). A Firestore transaction reserves both counters **before** sending the request, including failed or interrupted attempts. This is shared across processes and serverless instances. Resets use UTC dates. Email verification is required to reduce account abuse. Quota storage failures prevent the provider request. No real AI calls are made by the tests.
 
-Deploy from this directory using the Google Cloud CLI, replacing the project
-and region placeholders:
+The app-wide count, model selection, and token caps bound request volume; they are not a dollar-denominated billing guarantee. Set provider project budgets and monitor actual costs too. Analysis is user-triggered; ingestion never automatically spends AI quota. Confidence labels are model self-assessments, not calibrated probabilities. Every acceptance requires a checked confirmation and a current analysis. Low-confidence results recommend expert review.
 
-```sh
-gcloud run deploy hello-world-app --source . --project YOUR_PROJECT_ID --region YOUR_REGION
-```
+## Deploy on Vercel
 
-The source deployment builds the image using the Dockerfile. Follow the CLI
-prompts to choose whether the website allows unauthenticated access.
+Import this repository into Vercel as an Other project using the checked-in configuration. It builds the bundled browser app into `public/`, serves the backend through `api/index.js`, and routes `/api/*` requests to that handler. Add all Firebase, OpenAI, quota, and cron variables as Vercel environment variables. Never upload `.env`. Deploy Firestore rules separately and authorize the Vercel hostname in Firebase Auth. Redeploy after environment changes.
 
-Configure `OPENAI_API_KEY` as a Cloud Run secret-backed environment variable
-before generating questions. The service account needs access to that secret.
-The local `.env` is excluded from Git and Docker builds. Cloud Run environment
-variables work without a `.env` file in the container.
+The existing container option is also retained: `docker build -t safetysignal .` and `docker run --rm --env-file .env -p 8080:8080 safetysignal`. No deployment has been performed by this repository update.
 
-## xAPI learning activity tracking
+## Checks
 
-Fill in these `.env` settings and restart the server:
+`npm run build` bundles the Firebase client and local icons. `npm test` covers endpoint authentication failures, validation before AI spending, concurrent user/global quota exhaustion, provider failure handling, structured analysis, protected ingestion, and retained helper unit tests. `npm run test:e2e` runs browser tests for filters, empty/loading/uncertain states, confirmation gating, saved reviews, logout, and mobile layout. `npm run test:rules` runs three Firestore emulator tests for user isolation, confirmation requirements, protected quota/analysis records, and stale-review rejection (requires Java 21+). Cloud sign-in, deployed infrastructure, and real provider requests require credentials and are not verified by these local tests.
 
-```dotenv
-XAPI_ENABLED=true
-XAPI_LRS_URL=https://lrs.example.com/xapi/
-XAPI_USERNAME=your-lrs-key
-XAPI_PASSWORD=your-lrs-secret
-XAPI_AUTH_TOKEN=
-XAPI_ACTIVITY_BASE_URL=https://your-service.run.app/
-XAPI_SIGNING_SECRET=replace-with-a-random-secret-of-at-least-32-characters
-```
-
-`XAPI_LRS_URL` accepts an xAPI base endpoint or the full `/statements` URL.
-Use your LRS's Basic authentication key/secret as the username/password, or
-set `XAPI_AUTH_TOKEN` for bearer authentication instead. Generate a signing
-secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
-Keep this secret the same across Cloud Run instances and deployments.
-Keep the activity base URL stable so learner and question identifiers use the
-same namespace. Cloud Run needs these settings as environment variables or
-secret-backed environment variables; the local `.env` is not uploaded.
-
-The browser sends activity events to the app server, which builds xAPI 1.0.3
-statements and sends them to the LRS. LRS credentials never reach the browser.
-Tracking begins on page load, before any question is generated. Events include
-every click (including non-button areas), double-click, context-menu action,
-field input/change, focus/blur, keydown, wizard navigation, invalid form input,
-generation started/succeeded/failed, page open/exit, visibility changes, and
-AI suggestion requests/results and selected suggestions, plus
-scroll position after scrolling stops for 250 ms. Keyboard activity records
-navigation keys or the category `character`; it does not collect raw typed keys
-or clipboard contents. Domain/subdomain field values are recorded on edits.
-Click details identify the element tag/ID, button label, or choice index.
-
-Learning events include question viewed (`experienced`), choice selected (`interacted`),
-answer submitted (`answered`), and leaving an unanswered question (`terminated`).
-Records contain the question, choices, domain/subdomain, selected answer,
-elapsed time since the question appeared, and submission correctness/score.
-Question data is signed so the server computes correctness from the generated
-question rather than a client-supplied score. Question tokens expire after 24 hours.
-
-An anonymous learner UUID persists in local storage; a session UUID in session
-storage groups activity using xAPI `context.registration`. These are browser
-identifiers, not authenticated user identities. Clearing storage starts a new
-learner identity. If storage is unavailable, identifiers last only for the page.
-Elapsed time includes idle/background time; it is not a measure of active attention.
-
-Tracking defaults to disabled until configured. A visible notice appears when
-tracking is enabled. LRS failures display a save warning without blocking the
-quiz. The browser keeps pending records in session storage and sends batches,
-retrying failures while the page is open and when connectivity returns. Pending
-records survive reloads in the same tab, subject to browser storage availability.
-The server retries temporary failures up to three times with the same
-statement UUID using PUT. Original event timestamps are retained across retries.
-Expired/invalid records are isolated so they cannot block newer events.
-Page-exit events use a beacon as well as keepalive delivery, but closing a tab,
-clearing storage, or a long outage can still lose events. Repeated answer
-submissions are recorded as separate attempts. This tracks actions on this
-website; it cannot observe actions in other browser tabs or outside the page.
-
-Run `npm test` to check question generation and xAPI statement construction,
-input validation, authentication headers, retries, and LRS failure handling.
+Before production, connect and validate official feeds, add role-based oversight and expert assignment, durable audit trails, error monitoring, abuse controls, and organizational review procedures. This software supports review; it cannot replace institutional legal review or field inspections.

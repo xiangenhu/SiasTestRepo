@@ -1,0 +1,143 @@
+[
+  {
+    "id": "heat-proposal",
+    "title": "Heat injury & illness prevention",
+    "type": "Heat safety",
+    "jurisdiction": "Federal",
+    "agency": "OSHA",
+    "citation": "Proposed rule \u00b7 29 CFR 1910 et al.",
+    "published": "2024-08-30",
+    "stage": "Proposed rule",
+    "priority": "High",
+    "source": "https://www.osha.gov/heat-exposure/rulemaking",
+    "text": "Illustrative digest of OSHA's 2024 proposed heat rule, not the full legal text. The proposal addresses heat hazards in indoor and outdoor work and a written heat injury and illness prevention plan. A proposed rule does not itself establish a final compliance obligation. Consult the official source for current status and applicability, particularly for government employees covered by state plans.",
+    "analysis": {
+      "summary": "Prepare to assess heat exposure and your prevention plan. This is a proposed federal rule; do not treat proposed controls as enforceable final requirements.",
+      "actions": [
+        "Compare existing heat procedures with the proposal.",
+        "Identify exposed teams and gaps in training.",
+        "Ask counsel to verify current status and public-sector applicability."
+      ],
+      "confidence": "low",
+      "uncertainty": "The proposal's current status and its application to public-sector workplaces require verification. State-plan requirements may differ."
+    },
+    "sample": true,
+    "revision": "heat-proposal:v1"
+  },
+  {
+    "id": "hazcom-review",
+    "title": "Hazard communication: update your chemical inventory",
+    "type": "Chemical safety",
+    "jurisdiction": "Federal",
+    "agency": "OSHA",
+    "citation": "29 CFR 1910.1200",
+    "published": "2024-05-20",
+    "stage": "Reference standard",
+    "priority": "High",
+    "source": "https://www.osha.gov/hazcom",
+    "text": "Illustrative review scenario based on the Hazard Communication standard. Supervisors should check chemical inventories, safety data sheets, labels, and employee training against applicable requirements. This sample is not a new regulatory notice. Read the official standard and transition provisions before determining specific obligations.",
+    "analysis": {
+      "summary": "Review chemical inventories and safety data sheet access with facility leads. Confirm applicable transition dates before changing labels or training materials.",
+      "actions": [
+        "Reconcile the chemical inventory with supplier safety data sheets.",
+        "Check that staff can access the current safety data sheets.",
+        "Review labels and training with the safety officer."
+      ],
+      "confidence": "high",
+      "uncertainty": "Sample analysis only. Verify applicable deadlines in the source."
+    },
+    "sample": true,
+    "revision": "hazcom-review:v1"
+  },
+  {
+    "id": "cal-heat",
+    "title": "Indoor heat protection for California workplaces",
+    "type": "Heat safety",
+    "jurisdiction": "California",
+    "agency": "Cal/OSHA",
+    "citation": "Title 8 \u00b7 Section 3396",
+    "published": "2024-07-23",
+    "stage": "Reference standard",
+    "priority": "High",
+    "source": "https://www.dir.ca.gov/title8/3396.html",
+    "text": "Illustrative review scenario for California's indoor heat standard, Title 8 section 3396. Evaluate the standard's scope, exceptions, temperature thresholds, cooling measures, employee training, and written procedures using the official text. This is a reference record, not a newly received regulatory change.",
+    "analysis": {
+      "summary": "Assess indoor work areas for heat exposure and check whether section 3396 applies. Coordinate cooling measures and response procedures with your facility safety team.",
+      "actions": [
+        "Map indoor areas where heat exposure may occur.",
+        "Verify applicability and exceptions in the official text.",
+        "Review the written heat prevention and emergency response procedures."
+      ],
+      "confidence": "medium",
+      "uncertainty": "Applicability and exceptions depend on facility conditions; supervisor review is required."
+    },
+    "sample": true,
+    "revision": "cal-heat:v1"
+  },
+  {
+    "id": "respiratory",
+    "title": "Respiratory protection program review",
+    "type": "PPE & equipment",
+    "jurisdiction": "Federal",
+    "agency": "OSHA",
+    "citation": "29 CFR 1910.134",
+    "published": "2024-06-01",
+    "stage": "Reference standard",
+    "priority": "Medium",
+    "source": "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.134",
+    "text": "Illustrative review scenario based on the respiratory protection standard. Check the written program, medical evaluations, fit testing, and training for employees required to use respirators. This record is sample content, not a new rule or verified compliance finding.",
+    "analysis": null,
+    "sample": true,
+    "revision": "respiratory:v1"
+  },
+  {
+    "id": "recordkeeping",
+    "title": "Injury & illness recordkeeping readiness",
+    "type": "Recordkeeping",
+    "jurisdiction": "Federal",
+    "agency": "OSHA",
+    "citation": "29 CFR Part 1904",
+    "published": "2024-01-01",
+    "stage": "Reference standard",
+    "priority": "Medium",
+    "source": "https://www.osha.gov/recordkeeping",
+    "text": "Illustrative review scenario based on OSHA injury and illness recordkeeping. Determine establishment coverage and reporting obligations using official guidance. Review record completeness and access controls. This is sample content rather than a new regulatory update.",
+    "analysis": {
+      "summary": "Check injury and illness records for completeness and verify your establishment's reporting obligations before submission.",
+      "actions": [
+        "Confirm coverage and any exemptions.",
+        "Review missing fields with the recordkeeping owner.",
+        "Restrict access to employee health information."
+      ],
+      "confidence": "high",
+      "uncertainty": "Sample analysis; coverage must be checked for each establishment."
+    },
+    "sample": true,
+    "revision": "recordkeeping:v1"
+  },
+  {
+    "id": "washington-fall",
+    "title": "Fall prevention: field inspection checklist",
+    "type": "PPE & equipment",
+    "jurisdiction": "Washington",
+    "agency": "WA L&I",
+    "citation": "WAC 296-880",
+    "published": "2024-03-01",
+    "stage": "Reference standard",
+    "priority": "Medium",
+    "source": "https://app.leg.wa.gov/wac/default.aspx?cite=296-880",
+    "text": "Illustrative reference scenario for Washington unified fall protection rules. Verify applicable requirements for the work activity, fall exposure, equipment, training, and rescue planning against the official WAC. This is not a newly issued alert.",
+    "analysis": {
+      "summary": "Review fall exposure before field work. Match the inspection checklist and equipment selection to the applicable Washington requirements.",
+      "actions": [
+        "Identify elevated work and potential fall hazards.",
+        "Check equipment inspections and training records.",
+        "Confirm rescue procedures with the field lead."
+      ],
+      "confidence": "medium",
+      "uncertainty": "Work-specific thresholds and exceptions require review of the official rule."
+    },
+    "sample": true,
+    "revision": "washington-fall:v1"
+  }
+]
